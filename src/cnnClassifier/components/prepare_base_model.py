@@ -1,24 +1,32 @@
+from cnnClassifier.constants import *
+from cnnClassifier.utils.common import read_yaml, create_directories
 import os
 import urllib.request as request
 from zipfile import ZipFile
 import tensorflow as tf
-from pathlib import Path
-from cnnClassifier.entity.config_entity import PrepareBaseModelConfig
-
 
 class PrepareBaseModel:
-    def __init__(self, config: PrepareBaseModelConfig):
-        self.config = config
+    def __init__(
+        self,
+        config_filepath = CONFIG_FILE_PATH,
+        params_filepath = PARAMS_FILE_PATH):
+
+        self.config = read_yaml(config_filepath)
+        self.params = read_yaml(params_filepath)
+
+        create_directories([self.config.artifacts_root])
+        create_directories([self.config.prepare_base_model.root_dir])
+        
 
     
     def get_base_model(self):
         self.model = tf.keras.applications.vgg16.VGG16(
-            input_shape=self.config.params_image_size,
-            weights=self.config.params_weights,
-            include_top=self.config.params_include_top
+            input_shape=self.params.IMAGE_SIZE,
+            weights=self.params.WEIGHTS,
+            include_top=self.params.INCLUDE_TOP
         )
 
-        self.save_model(path=self.config.base_model_path, model=self.model)
+        self.save_model(path=self.config.prepare_base_model.base_model_path, model=self.model)
 
     
 
@@ -55,13 +63,13 @@ class PrepareBaseModel:
     def update_base_model(self):
         self.full_model = self._prepare_full_model(
             model=self.model,
-            classes=self.config.params_classes,
+            classes=self.params.CLASSES,
             freeze_all=True,
             freeze_till=None,
-            learning_rate=self.config.params_learning_rate
+            learning_rate=self.params.LEARNING_RATE
         )
 
-        self.save_model(path=self.config.updated_base_model_path, model=self.full_model)
+        self.save_model(path=self.config.prepare_base_model.updated_base_model_path, model=self.full_model)
 
     
         
