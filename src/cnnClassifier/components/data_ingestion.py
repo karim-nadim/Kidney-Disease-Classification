@@ -1,36 +1,37 @@
 import os
 import zipfile
-import gdown
+import urllib.request as request
 from cnnClassifier import logger
 from cnnClassifier.utils.common import get_size
-from cnnClassifier.entity.config_entity import (DataIngestionConfig)
+from cnnClassifier.constants import *
+from cnnClassifier.utils.common import read_yaml, create_directories
 
 
 
 class DataIngestion:
-    def __init__(self, config: DataIngestionConfig):
-        self.config = config
+    def __init__(
+        self,
+        config_filepath = CONFIG_FILE_PATH,
+        params_filepath = PARAMS_FILE_PATH):
+
+        self.config = read_yaml(config_filepath)
+        self.params = read_yaml(params_filepath)
+
+        create_directories([self.config.artifacts_root])
+        create_directories([self.config.data_ingestion.root_dir])
+
+        
 
     
-    def download_file(self)-> str:
-        '''
-        Fetch data from the url
-        '''
-
-        try: 
-            dataset_url = self.config.source_URL
-            zip_download_dir = self.config.local_data_file
-            os.makedirs("artifacts/data_ingestion", exist_ok=True)
-            logger.info(f"Downloading data from {dataset_url} into file {zip_download_dir}")
-
-            file_id = dataset_url.split("/")[-2]
-            prefix = 'https://drive.google.com/uc?/export=download&id='
-            gdown.download(prefix+file_id,zip_download_dir)
-
-            logger.info(f"Downloaded data from {dataset_url} into file {zip_download_dir}")
-
-        except Exception as e:
-            raise e
+    def download_file(self):
+        if not os.path.exists(self.config.data_ingestion.local_data_file):
+            filename, headers = request.urlretrieve(
+                url = self.config.data_ingestion.source_URL,
+                filename = self.config.data_ingestion.local_data_file
+            )
+            logger.info(f"{filename} download! with following info: \n{headers}")
+        else:
+            logger.info(f"File already exists of size: {get_size(Path(self.config.data_ingestion.local_data_file))}")
         
     
 
@@ -40,8 +41,8 @@ class DataIngestion:
         Extracts the zip file into the data directory
         Function returns None
         """
-        unzip_path = self.config.unzip_dir
+        unzip_path = self.config.data_ingestion.unzip_dir
         os.makedirs(unzip_path, exist_ok=True)
-        with zipfile.ZipFile(self.config.local_data_file, 'r') as zip_ref:
+        with zipfile.ZipFile(self.config.data_ingestion.local_data_file, 'r') as zip_ref:
             zip_ref.extractall(unzip_path)
 
