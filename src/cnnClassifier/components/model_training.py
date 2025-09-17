@@ -1,20 +1,28 @@
+from cnnClassifier.constants import *
+from cnnClassifier.utils.common import read_yaml, create_directories
+import tensorflow as tf
 import os
 import urllib.request as request
 from zipfile import ZipFile
 import tensorflow as tf
 import time
-from pathlib import Path
-from cnnClassifier.entity.config_entity import TrainingConfig
-
 
 class Training:
-    def __init__(self, config: TrainingConfig):
-        self.config = config
+    def __init__(
+        self,
+        config_filepath = CONFIG_FILE_PATH,
+        params_filepath = PARAMS_FILE_PATH):
+
+        self.config = read_yaml(config_filepath)
+        self.params = read_yaml(params_filepath)
+
+        create_directories([self.config.artifacts_root])
+        create_directories([self.config.training.root_dir])
 
     
     def get_base_model(self):
         self.model = tf.keras.models.load_model(
-            self.config.updated_base_model_path
+            self.config.training.updated_base_model_path
         )
 
     def train_valid_generator(self):
@@ -25,8 +33,8 @@ class Training:
         )
 
         dataflow_kwargs = dict(
-            target_size=self.config.params_image_size[:-1],
-            batch_size=self.config.params_batch_size,
+            target_size=self.params.IMAGE_SIZE[:-1],
+            batch_size=self.params.BATCH_SIZE,
             interpolation="bilinear"
         )
 
@@ -35,13 +43,13 @@ class Training:
         )
 
         self.valid_generator = valid_datagenerator.flow_from_directory(
-            directory=self.config.training_data,
+            directory=Path(os.path.join(self.config.data_ingestion.unzip_dir, "kidney-ct-scan-image")),
             subset="validation",
             shuffle=False,
             **dataflow_kwargs
         )
 
-        if self.config.params_is_augmentation:
+        if self.params.AUGMENTATION:
             train_datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(
                 rotation_range=40,
                 horizontal_flip=True,
@@ -55,7 +63,7 @@ class Training:
             train_datagenerator = valid_datagenerator
 
         self.train_generator = train_datagenerator.flow_from_directory(
-            directory=self.config.training_data,
+            directory=Path(os.path.join(self.config.data_ingestion.unzip_dir, "kidney-ct-scan-image")),
             subset="training",
             shuffle=True,
             **dataflow_kwargs
@@ -75,14 +83,14 @@ class Training:
 
         self.model.fit(
             self.train_generator,
-            epochs=self.config.params_epochs,
+            epochs=self.params.EPOCHS,
             steps_per_epoch=self.steps_per_epoch,
             validation_steps=self.validation_steps,
             validation_data=self.valid_generator
         )
 
         self.save_model(
-            path=self.config.trained_model_path,
+            path=self.config.training.trained_model_path,
             model=self.model
         )
 

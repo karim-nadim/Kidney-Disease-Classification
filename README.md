@@ -20,20 +20,25 @@
 Clone the repository
 
 ```bash
-https://github.com/krishnaik06/Kidney-Disease-Classification-Deep-Learning-Project
+https://github.com/karim-nadim/Quality-Classification
 ```
 ### STEP 01- Create a conda environment after opening the repository
 
 ```bash
-conda create -n cnncls python=3.8 -y
+conda create -n kidney python=3.11 -y
 ```
 
 ```bash
-conda activate cnncls
+conda activate kidney
 ```
 
+### STEP 02- (optional) Install Cuda
+If you want to use GPU and you are using WindowsNative, then run:
+```bash
+conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1.0
+```
 
-### STEP 02- install the requirements
+### STEP 03- install the requirements
 ```bash
 pip install -r requirements.txt
 ```
