@@ -61,25 +61,37 @@ class Evaluation:
         scores = {"loss": self.score[0], "accuracy": self.score[1]}
         save_json(path=Path("scores.json"), data=scores)
 
-    
-    def log_into_mlflow(self):
-        mlflow.set_registry_uri(self.mlflow_uri)
-        tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
         
-        dagshub.init(repo_owner='karim-nadim', repo_name='Kidney-Disease-Classification', mlflow=True)
+    def log_into_mlflow(self):
+        # Make sure DagsHub is initialized first
+        dagshub.init(
+            repo_owner='karim-nadim',
+            repo_name='Kidney-Disease-Classification',
+            mlflow=True
+        )
+
+        # Optional: set explicit registry URI
+        mlflow.set_registry_uri(self.mlflow_uri)
+
+        # Debug: confirm URI
+        print("Tracking URI:", mlflow.get_tracking_uri())
+        print("Registry URI:", mlflow.get_registry_uri())
 
         with mlflow.start_run():
             mlflow.log_params(self.params)
-            mlflow.log_metrics(
-                {"loss": self.score[0], "accuracy": self.score[1]}
-            )
-            # Model registry does not work with file store
-            if tracking_url_type_store != "file":
+            mlflow.log_metrics({
+                "loss": self.score[0],
+                "accuracy": self.score[1]
+            })
 
-                # Register the model
-                # There are other ways to use the Model Registry, which depends on the use case,
-                # please refer to the doc for more information:
-                # https://mlflow.org/docs/latest/model-registry.html#api-workflow
-                mlflow.keras.log_model(self.model, "model", registered_model_name="VGG16Model")
-            else:
-                mlflow.keras.log_model(self.model, "model")
+            # Always try to register the model on DagsHub
+            try:
+                mlflow.keras.log_model(
+                    self.model,
+                    artifact_path="model",
+                    registered_model_name="VGG16Model"
+                )
+            except Exception as e:
+                print("⚠️ Could not register model, falling back to artifact only:", e)
+                mlflow.keras.log_model(self.model, artifact_path="model")
+

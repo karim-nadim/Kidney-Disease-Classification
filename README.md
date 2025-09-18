@@ -54,7 +54,7 @@ open up you local host and port
 
 
 
-
+<br><br>
 
 ## MLflow
 
@@ -76,7 +76,7 @@ with mlflow.start_run():
   mlflow.log_param('parameter name', 'value')
   mlflow.log_metric('metric name', 1)
 ```
-
+<br><br>
 
 ## DVC 
 
@@ -85,8 +85,8 @@ with mlflow.start_run():
  - lite weight expriements tracker
  - It can perform Orchestration (Creating Pipelines)
  - Inside dvc.yaml we define each stage (e.g. data_ingestion), its python files, its dependancies, and its outputs.
-<br>
-<br>
+<br><br>
+
  
 After completing all pipleline files, initialize DVC by running:
 ```bash
@@ -97,11 +97,12 @@ Then run the full pipeline (ensure there is no artifacts folder). This work simi
 dvc repro
 ```
 A dvc.lock will be created automatically saving all info about the pipeline and tracking the last changes. If "dvc repro" is run again, only the pipeline stages with any new changes will run.
-
 ```bash
 dvc dag
 ```
+dvc dag will show a graph of the pipeline and how the step are connected
 
+<br><br>
 
 # AWS-CICD-Deployment-with-Github-Actions
 
