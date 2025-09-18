@@ -62,8 +62,6 @@ open up you local host and port
 
 - [MLflow tutorial](https://youtu.be/qdcHHrsXA48?si=bD5vDS60akNphkem)
 
-##### cmd
-- mlflow ui
 
 ### dagshub
 [dagshub](https://dagshub.com/)
@@ -80,31 +78,29 @@ with mlflow.start_run():
 ```
 
 
-### DVC cmd
-
-1. dvc init
-2. dvc repro
-3. dvc dag
-
-
-## About MLflow & DVC
-
-MLflow
-
- - Its Production Grade
- - Trace all of your expriements
- - Logging & taging your model
-
-
-DVC
+## DVC 
 
  - It is used to manage the pipeline (what if we want to run the pipeline from the model_training step, and skip all the steps that were before) 
  - Its very lite weight for POC only
  - lite weight expriements tracker
  - It can perform Orchestration (Creating Pipelines)
+ - Inside dvc.yaml we define each stage (e.g. data_ingestion), its python files, its dependancies, and its outputs.
+<br>
+<br>
+ 
+After completing all pipleline files, initialize DVC by running:
+```bash
+dvc init
+```
+Then run the full pipeline (ensure there is no artifacts folder). This work similar to main.py. Run:
+```bash
+dvc repro
+```
+A dvc.lock will be created automatically saving all info about the pipeline and tracking the last changes. If "dvc repro" is run again, only the pipeline stages with any new changes will run.
 
- -Inside dvc.yaml we define each stage (e.g. data_ingestion), its python files, its dependancies, and its outputs.
-
+```bash
+dvc dag
+```
 
 
 # AWS-CICD-Deployment-with-Github-Actions
