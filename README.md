@@ -6,13 +6,11 @@
 1. Update config.yaml
 2. Update secrets.yaml [Optional]
 3. Update params.yaml
-4. Update the entity
-5. Update the configuration manager in src config
-6. Update the components
-7. Update the pipeline 
-8. Update the main.py
-9. Update the dvc.yaml
-10. app.py
+4. Update the components
+5. Update the pipeline 
+6. Update the main.py
+7. Update the dvc.yaml
+8. app.py
 
 # How to run?
 ### STEPS:
@@ -70,21 +68,15 @@ open up you local host and port
 ### dagshub
 [dagshub](https://dagshub.com/)
 
-MLFLOW_TRACKING_URI=https://dagshub.com/entbappy/Kidney-Disease-Classification-MLflow-DVC.mlflow \
-MLFLOW_TRACKING_USERNAME=entbappy \
-MLFLOW_TRACKING_PASSWORD=6824692c47a369aa6f9eac5b10041d5c8edbcef0 \
-python script.py
-
-Run this to export as env variables:
-
 ```bash
+self.mlflow_uri = "https://dagshub.com/karim-nadim/Kidney-Disease-Classification.mlflow"
+mlflow.set_registry_uri(self.mlflow_uri)
+tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
 
-export MLFLOW_TRACKING_URI=https://dagshub.com/entbappy/Kidney-Disease-Classification-MLflow-DVC.mlflow
-
-export MLFLOW_TRACKING_USERNAME=entbappy 
-
-export MLFLOW_TRACKING_PASSWORD=6824692c47a369aa6f9eac5b10041d5c8edbcef0
-
+dagshub.init(repo_owner='karim-nadim', repo_name='Kidney-Disease-Classification', mlflow=True)
+with mlflow.start_run():
+  mlflow.log_param('parameter name', 'value')
+  mlflow.log_metric('metric name', 1)
 ```
 
 
@@ -104,11 +96,14 @@ MLflow
  - Logging & taging your model
 
 
-DVC 
+DVC
 
+ - It is used to manage the pipeline (what if we want to run the pipeline from the model_training step, and skip all the steps that were before) 
  - Its very lite weight for POC only
  - lite weight expriements tracker
  - It can perform Orchestration (Creating Pipelines)
+
+ -Inside dvc.yaml we define each stage (e.g. data_ingestion), its python files, its dependancies, and its outputs.
 
 
 

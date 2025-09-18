@@ -1,15 +1,24 @@
+import os
+from cnnClassifier.constants import *
+from cnnClassifier.utils.common import read_yaml, create_directories, save_json
 import tensorflow as tf
 from pathlib import Path
 import mlflow
 import mlflow.keras
 from urllib.parse import urlparse
-from cnnClassifier.entity.config_entity import EvaluationConfig
-from cnnClassifier.utils.common import read_yaml, create_directories,save_json
-
+import dagshub
 
 class Evaluation:
-    def __init__(self, config: EvaluationConfig):
-        self.config = config
+    def __init__(
+        self, 
+        config_filepath = CONFIG_FILE_PATH,
+        params_filepath = PARAMS_FILE_PATH):
+
+        self.config = read_yaml(config_filepath)
+        self.params = read_yaml(params_filepath)
+        self.mlflow_uri = "https://dagshub.com/karim-nadim/Kidney-Disease-Classification.mlflow"
+        
+        create_directories([self.config.artifacts_root])
 
     
     def _valid_generator(self):
@@ -20,8 +29,8 @@ class Evaluation:
         )
 
         dataflow_kwargs = dict(
-            target_size=self.config.params_image_size[:-1],
-            batch_size=self.config.params_batch_size,
+            target_size=self.params.IMAGE_SIZE[:-1],
+            batch_size=self.params.BATCH_SIZE,
             interpolation="bilinear"
         )
 
@@ -30,7 +39,7 @@ class Evaluation:
         )
 
         self.valid_generator = valid_datagenerator.flow_from_directory(
-            directory=self.config.training_data,
+            directory=Path(os.path.join(self.config.data_ingestion.unzip_dir, "kidney-ct-scan-image")),
             subset="validation",
             shuffle=False,
             **dataflow_kwargs
@@ -43,7 +52,7 @@ class Evaluation:
     
 
     def evaluation(self):
-        self.model = self.load_model(self.config.path_of_model)
+        self.model = self.load_model(self.config.training.trained_model_path)
         self._valid_generator()
         self.score = self.model.evaluate(self.valid_generator)
         self.save_score()
@@ -54,11 +63,13 @@ class Evaluation:
 
     
     def log_into_mlflow(self):
-        mlflow.set_registry_uri(self.config.mlflow_uri)
+        mlflow.set_registry_uri(self.mlflow_uri)
         tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
         
+        dagshub.init(repo_owner='karim-nadim', repo_name='Kidney-Disease-Classification', mlflow=True)
+
         with mlflow.start_run():
-            mlflow.log_params(self.config.all_params)
+            mlflow.log_params(self.params)
             mlflow.log_metrics(
                 {"loss": self.score[0], "accuracy": self.score[1]}
             )
