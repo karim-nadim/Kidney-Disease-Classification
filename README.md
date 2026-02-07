@@ -81,8 +81,8 @@ with mlflow.start_run():
 ## DVC 
 
  - It is used to manage the pipeline (what if we want to run the pipeline from the model_training step, and skip all the steps that were before) 
- - Its very lite weight for POC only
- - lite weight expriements tracker
+ - Its very lightweight for POC only
+ - lightweight expriements tracker
  - It can perform Orchestration (Creating Pipelines)
  - Inside dvc.yaml we define each stage (e.g. data_ingestion), its python files, its dependancies, and its outputs.
 <br><br>
@@ -92,7 +92,7 @@ After completing all pipleline files, initialize DVC by running:
 ```bash
 dvc init
 ```
-Then run the full pipeline (ensure there is no artifacts folder). This work similar to main.py. Run:
+Then run the full pipeline (ensure there is no artifacts folder). This works similar to main.py. Run:
 ```bash
 dvc repro
 ```
@@ -112,9 +112,9 @@ dvc dag will show a graph of the pipeline and how the step are connected
 
 	#with specific access
 
-	1. EC2 access : It is virtual machine
+	1. EC2 access : For the virtual machine
 
-	2. ECR: Elastic Container registry to save your docker image in aws
+	2. ECR: Elastic Container registry to save your docker image in AWS
 
 
 	#Description: About the deployment
